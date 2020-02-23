@@ -1,0 +1,33 @@
+#!/usr/bin/env node
+
+const path = require('path');
+const exec = require('@actions/exec');
+const GhostAdminApi = require('@tryghost/admin-api');
+
+(async function main() {
+    try {
+        const url = process.env.GHOST_ADMIN_API_URL;
+        const api = new GhostAdminApi({
+            url,
+            key: process.env.GHOST_ADMIN_API_KEY,
+            version: 'canary'
+        });
+
+        const basePath = process.env.GHOST_THEME_BASE_PATH;
+        const themeName = process.env.GHOST_THEME_NAME;
+        const themeZip = `${themeName}.zip`;
+        const zipPath = path.join(basePath, themeZip);
+        const exclude = process.env.GHOST_THEME_ZIP_EXCLUDE || '';
+
+        // Create a zip
+        await exec.exec(`zip -r ${themeZip} . -x *.git* *.zip yarn* npm* *routes.yaml *redirects.yaml *redirects.json ${exclude}`, [], {cwd: basePath});
+
+        // Deploy it to the configured site
+        await api.themes.upload({file: zipPath});
+        console.log(`${themeZip} successfully uploaded.`);
+    } catch (err) {
+        console.error(err);
+        process.exit(1);
+    }
+}());
+
