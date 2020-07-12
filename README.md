@@ -19,7 +19,7 @@ name: default
 
 steps:
 - name: deploy
-  image: biozz/ghost-admin-api:latest
+  image: biozz/ghost-theme-deploy:latest
   environment:
     GHOST_ADMIN_API_KEY:
       from_secret: GHOST_ADMIN_API_KEY
